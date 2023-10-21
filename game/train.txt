@@ -1,0 +1,41 @@
+class Train:
+
+    def __init__(self,
+                 x0: float,
+                 y0: float,
+                 alpha0: float,
+                 v_max: float,
+                 locator: Locator,
+                 ):
+        #Locator каждый пишет для себя??
+        # вызывать через метод measurement??
+        pass
+
+    def update(self, x: float, y: float):
+        #обновление для автоматического режима 
+        pass
+
+      
+    def info(self) -> dict:
+
+        return {
+            "params": (self.x, self.y, self.v, self.alpha),
+            "maps": self.maps
+
+            #maps: {
+            #    'circle': [(xc, yc, r), (...), ...],
+            #     'line':  [(a, b), (a, c), ...] 
+            #}
+        }
+
+    def processing(self):
+        #для ручного режима
+        pass
+
+    def manual_update(self, x: float, y: float, alpha: float):
+        #для ручного режима
+        pass
+
+    def processing_auto(self):
+
+        pass
