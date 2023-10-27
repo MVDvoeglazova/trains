@@ -1,53 +1,9 @@
 from math import cos, sin, radians
 from random import uniform
+from typing import Counter
 from game.locator import Locator
+from game.geometry import Line, Angle, Circle, what_is_it
 
-
-def isline(k, b, x1, y1, eps = 0.01):
-    if y1-eps <= k * x1 + b <= y1 + eps:
-        return True
-    else:
-        return False
-
-def iscircle(xc, yc, r, x1, y1, eps = 0.05):
-
-    if (1-eps) * r**2<= (x1-xc)**2 + (y1-yc)**2 <= (1+eps) * r**2:
-        return True
-    else:
-        return False
-
-#получение коэффициентов уравнения прямой по 2 точкам
-def straight_line(x1, y1, x2, y2):
-            if x1-x2 != 0:
-                k = (y1 - y2) / (x1 - x2)
-            else:
-                k = 0
-            b = y2 - k*x2
-            return k, b
-
-#реализация уравнения прямой, возвращает значение y по заданному х
-def f(k,x,b):
-            return k*x + b
-
-#возвращает коэф. уравнения прямой нормальной к заданной 
-def normal(x1, y1, k):
-        return -1/k, (x1/k+y1)
-
-#середина отрезка
-def median(x1, y1, x2, y2):
-        x = 0.5 * (x1 + x2)
-        y = 0.5 * (y1 + y2)
-        return x, y
-# возвоащает точку пересечения прямых 
-def line_intersection(k1, b1, k2, b2):
-    if k1-k2!=0:
-        x = (b2-b1)/(k1-k2)
-        y = k1*x + b1
-    else: return
-    return x, y
- #длина отрезка между заданными точками 
-def len_a_b(x1, y1, x2, y2):
-    return (((x1-x2)**2 + (y1-y2)**2)**0.5)
 
 
 color1 = (255, 0, 0)
@@ -75,16 +31,16 @@ class Train:
         self.v = 5
         self.distance = None
         self.auto = True
+        self.ROTATION = 30
 
+        self.count = 0
 
         self.lastpoint = (x0, y0)
         self.points = list()
-        #circles = (xc, yc, r, list: points)
-        self.points_of_circles = list()
-        self.circles = dict()
-        self.lines = dict()
-        self.dictionary_of_shapes = dict()
 
+        self.line = []
+        self.angle = []
+        self.circle = []
 
 
 
@@ -109,86 +65,47 @@ class Train:
                     x_q + self.distance * cos(alpha_q),
                     y_q + self.distance * sin(alpha_q)
                 )
-
-                self.points.append(new_point)
-
-                if len(self.points) > 2:
-                    x0, y0 = self.points[0]
-                    x1, y1 = self.points[1]
-                    x2, y2 = self.points[-1]
-                    xmin = min(x0, x1, x2)
-                    xmax = max(x0, x1, x2)
-                    ymin = min(y0, y1, y2)
-                    ymax = max(y0, y1, y2)
-                    k_point, b_point = straight_line(x0, y0, x1, y1)
-                    if isline(k_point, b_point, x2, y2):
-                        for line in self.lines:
-                              if isline(k_point, b_point, self.lines[line][0][0], self.lines[line][0][0]):
-                                  if xmin not in range(self.lines[line][0][0], self.lines[line][1][0]):
-                                      self.lines[line][0] = (xmin, self.lines[line][0][1])
-                                  if xmax not in range(self.lines[line][0][0], self.lines[line][1][0]):
-                                      self.lines[line][1] = (self.lines[line][0][1], xmax)
-                                  if ymin not in range(self.lines[line][0][1], self.lines[line][1][1]):
-                                      self.lines[line][0] = (ymin, self.lines[line][1][1])
-                                  if ymax not in range(self.lines[line][0][1], self.lines[line][1][1]):
-                                      self.lines[line][1] = (self.lines[line][1][1], xmax)
-                                  self.points = []
-                                  break
-                        if self.points:
-                            self.lines[f'line_{1+len(self.lines)}'] = [(x0, y0), (x2, y2), color1]
-                            self.points = [] 
-
-                    elif 0.098 * x0 <= x1 <= 1.02 * x0:
-                        self.points_of_circles = [self.points[0], self.points[1], self.points[2]]
-                        k1_2, b1_2 = k_point, b_point
-                        k2_3, b2_3 = straight_line(self.points[0][0], self.points[0][1], self.points[-1][0], self.points[-1][1])
-                        point1_2 = median(self.points[0][0], self.points[0][1], self.points[1][0], self.points[1][1])
-                        point2_3 = median(self.points[0][0], self.points[0][1], self.points[-1][0], self.points[-1][1])
-                        k1, b1 = normal(point1_2[0], point1_2[1], k1_2)
-                        k2, b2 = normal(point2_3[0], point2_3[1], k2_3)
-                        center = line_intersection(k1, b1, k2, b2)
-                        if center:
-                                len_ab = len_a_b(center[0], center[1], point1_2[0], point1_2[1])
-                                for num in self.circles:
-                                    if iscircle(self.circles[num][0][0], self.circles[num][0][1], self.circles[num][1], x1, x2):
-                                        for xi, yi in self.points:
-                                            self.circles[num][3].append((xi,yi))
-                                        self.points_of_circles = sorted(self.circles[num][3])
-                                        
-                                        lenght = len(self.points_of_circle)
-                                        point_1 = self.points_of_circle[0]
-                                        point_2 = self.points_of_circle[lenght//2]
-                                        point_3 = self.points_of_circle[lenght-1]
-                                        k1_2, b1_2 = straight_line(point_1[0], point_1[1], point_2[0], point_2[1])
-                                        k2_3, b2_3 = straight_line(point_3[0], point_3[1], point_2[0], point_2[1])
-                                        point1_2 = median(point_1[0], point_1[1], point_2[0], point_2[1])
-                                        point2_3 = median(point_3[0], point_3[1], point_2[0], point_2[1])
-                                        k1, b1 = normal(point1_2[0], point1_2[1], k1_2)
-                                        k2, b2 = normal(point2_3[0], point2_3[1], k2_3)
-                                        center = line_intersection(k1, b1, k2, b2)
-                                        self.circles[num][0] = center[0]
-                                        self.circles[num][1] = center[1]
-                                        len_ab = len_a_b(center[0], center[1], point1_2[0], point1_2[1])
-                                        self.circles[num][2] = len_ab
-                                        self.circles[num][3].append(self.points[0])
-                                        self.circles[num][3].append(self.points[1])
-                                        self.circles[num][3].append(self.points[2])
-                                        self.points = []
-                                        break
-                                if self.points:
-                                    if iscircle(center[0], center[1], len_ab, x0, y0) and iscircle(center[0], center[1], len_ab, x1, y1):
-                                        self.circles[f'circl{1+len(self.circles)}'] = [(center[0], center[1]), len_ab,[self.points[0], self.points[1], self.points[2]] ,color2]
-                                    self.points = []
-                                #center = None
-                    else:
-                        self.points = []
+                if 0 < self.count < 3*self.ROTATION - 1:
+                    self.points.append(new_point)
+                elif self.points:
+                   name_class, out_class =  what_is_it(self.points, (self.x, self.y))
+                  
+            
+                   if name_class == 'Line':
+                        self.line.append((out_class.begin, out_class.end, color1))
+                        self.line = sorted(self.line)
+                        #line = Line(self.line[0][0], self.line[0][1])
+                        #line.update()
+                        #for num in range(1, len(self.line)):
+                        #    if line.isline(self.line[num][1]):
+                        #        line.update()
+                        #        self.line[num] = (line.begin, line.end, color1)
+                        #        self.line.pop(num)
+                        #    else:
+                        #        line = Line(self.line[num][0], self.line[num][1])
+                        #        line.update()
 
 
+                   elif name_class == 'Angle':
+                       point_intersection = (out_class.x_intersection, out_class.y_intersection)
+                       if point_intersection[0] and point_intersection[1]:
+                           self.line.append((out_class.line1.begin, point_intersection, color2))
+                           self.line.append((out_class.line2.begin, point_intersection, color2))
+                           self.line.append((out_class.line1.begin, out_class.line1.end, color2))
+                           self.line.append((out_class.line2.begin, out_class.line2.end, color2))
+                   elif name_class == 'Circle':
+                      
+                       self.circle.append((out_class.xc, out_class.yc), out_class.radius, color3)
+                   else:
+                        pass
 
 
+                            
+                   self.points = []
+                    
+        
 
-                        
-
+        
         else:
             self.distance = None
 
@@ -209,9 +126,9 @@ class Train:
 
 
         figures = {
-            "lines": self.lines.values() ,  # не замкнутая
-            "circles": self.circles.values(),
-            "points": self.points
+            "lines": self.line ,  # не замкнутая
+            "circles": self.circle,
+            "points": [(0,0)]
         }
 
         return {
@@ -231,19 +148,53 @@ class Train:
 
         self.locator.make_query(self.x, self.y, self.alpha)
 
-    def processing_auto(self):
-
-        if self.distance:
-            self.v = 0
-            self.alpha += radians(2.0)
-
-        else:
-            self.v = 5
-
+    def move(self, angle = 0):
+        self.alpha += radians(angle)
 
         self.x += self.v * cos(self.alpha)
         self.y += self.v * sin(self.alpha)
 
-
-
         self.locator.make_query(self.x, self.y, self.alpha)
+        
+
+
+    def processing_auto(self):
+    
+        if self.distance:
+
+            if self.distance >= self.locator.range()//2:
+                self.v = 2
+                self.move()
+            else:
+                self.v = 0
+                self.count += 1
+
+        if self.count:
+                if self.count < self.ROTATION:
+                    self.move(1) 
+                    self.count += 1
+
+                elif self.count < 3* self.ROTATION:
+                    self.move(-1) 
+                    self.count += 1
+
+                else:
+                    self.count = 0
+                    self.alpha += radians(150)
+                    self.v = 2
+                    self.move()
+
+        else: 
+                self.v = 2
+                self.move()
+        #elif self.count:
+
+        #    if self.count < self.ROTATION:
+        #        self.move(-1)
+        #        self.count += self.ROTATION
+        #    else:
+        #        self.count = 0
+                
+        #        self.move(-1)
+
+ 
