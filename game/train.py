@@ -23,7 +23,7 @@ class Train:
                  locator: Locator,
                  ):
 
-        self.alpha = alpha0  # строительная ось от оси x против часовой стрелки
+        self.alpha = radians(90) #alpha0  # строительная ось от оси x против часовой стрелки
         self.x = x0
         self.y = y0
         self.v_max = 15
@@ -35,14 +35,19 @@ class Train:
 
         self.count = 0
 
-        self.lastpoint = (x0, y0)
+  
         self.points = list()
 
         self.line = []
-        self.angle = []
         self.circle = []
-
-
+#----------------------------------------------------------
+        self.border = False
+        self.vertices_of_border = list()
+        self.around = 0
+        self.list_of_directions = []
+        self.delta = 0
+        self.lines = []
+#----------------------------------------------------------
 
 
 
@@ -65,49 +70,14 @@ class Train:
                     x_q + self.distance * cos(alpha_q),
                     y_q + self.distance * sin(alpha_q)
                 )
-                if 0 < self.count < 3*self.ROTATION - 1:
+                
+                if self.v == 0:
                     self.points.append(new_point)
-                elif self.points:
-                   name_class, out_class =  what_is_it(self.points, (self.x, self.y))
-                  
-            
-                   if name_class == 'Line':
-                        self.line.append((out_class.begin, out_class.end, color1))
-                        self.line = sorted(self.line)
-                        #line = Line(self.line[0][0], self.line[0][1])
-                        #line.update()
-                        #for num in range(1, len(self.line)):
-                        #    if line.isline(self.line[num][1]):
-                        #        line.update()
-                        #        self.line[num] = (line.begin, line.end, color1)
-                        #        self.line.pop(num)
-                        #    else:
-                        #        line = Line(self.line[num][0], self.line[num][1])
-                        #        line.update()
-
-
-                   elif name_class == 'Angle':
-                       point_intersection = (out_class.x_intersection, out_class.y_intersection)
-                       if point_intersection[0] and point_intersection[1]:
-                           self.line.append((out_class.line1.begin, point_intersection, color2))
-                           self.line.append((out_class.line2.begin, point_intersection, color2))
-                           self.line.append((out_class.line1.begin, out_class.line1.end, color2))
-                           self.line.append((out_class.line2.begin, out_class.line2.end, color2))
-                   elif name_class == 'Circle':
-                      
-                       self.circle.append((out_class.xc, out_class.yc), out_class.radius, color3)
-                   else:
-                        pass
-
-
-                            
-                   self.points = []
-                    
-        
 
         
         else:
             self.distance = None
+
 
     def info(self) -> dict:
 
@@ -126,9 +96,9 @@ class Train:
 
 
         figures = {
-            "lines": self.line ,  # не замкнутая
+            "lines": self.lines ,  # не замкнутая
             "circles": self.circle,
-            "points": [(0,0)]
+            "points": self.points
         }
 
         return {
@@ -157,44 +127,105 @@ class Train:
         self.locator.make_query(self.x, self.y, self.alpha)
         
 
+    def explore(self):
+        pass
+    def rotation_around(self):
+        self.v = 0
+        self.move(1)
+        self.around += 1
+
+    def rotation(self):
+
+        if (0 < self.count <= self.ROTATION) or (3*self.ROTATION < self.count <= 4*self.ROTATION):
+            self.v = 0
+            self.move(-1)
+            self.count += 1
+
+        elif self.ROTATION < self.count <= 3*self.ROTATION:
+            self.move(1)
+            self.count += 1
+
+
+        elif self.count >= 4*self.ROTATION:
+     
+
+            class_name, out_class = what_is_it(self.points, (self.x, self.y))
+            self.points = []
+            if class_name == 'Line':
+                
+               
+                self.line = out_class
+            elif class_name == 'Angle':
+                self.v = 0
+            
+
+            if self.alpha < radians(100+self.delta):
+                self.alpha = radians(180+self.delta)
+                self.list_of_directions.append((self.x, self.y))
+            else:
+                self.alpha = radians(90+self.delta)
+                self.list_of_directions.append((self.x, self.y))
+            self.v = 5 
+            self.count = 0
+            self.move()
+            return class_name, out_class
+        return None, None
+
+
+    def search_border(self):
+
+        if len(self.list_of_directions) > 3:
+            point_1 = self.list_of_directions[-1]
+            point_2 = self.list_of_directions[-2]
+            line = Line(point_1, point_2)
+            line.update()
+            if line.lenght() < self.locator.range()*0.6:
+                self.alpha = radians(90+45+self.delta)
+
+                self.count += 1
+                self.list_of_directions = []
+
+
+        elif self.count:
+   
+            class_name, out_class = self.rotation()
+            
+            if class_name == 'Angle':
+                  print(out_class.isborder())
+                  self.vertices_of_border.append((out_class.x_intersection, out_class.y_intersection))
+                  self.delta = 180
+                  self.alpha = radians(270)
+                  self.v = 5
+             
+            
+        elif not self.distance or (self.distance and self.distance > self.locator.range()*0.6):
+            self.v = 5
+            self.move()
+        else:
+            self.count += 1
+            self.move()
+
+        if len(self.vertices_of_border) == 2:
+            point_1 = self.vertices_of_border[0]
+            point_3 = self.vertices_of_border[1] 
+            point_2 = point_1[0], point_3[1]
+            point_4 = point_3[0], point_1[1]
+            lines = [(point_1, point_2, color1), (point_2, point_3, color1), (point_3, point_4, color1), (point_4, point_1, color1)]
+            self.lines += lines
+            self.border = True
+            
+            
+
+
+    def search_shapes(self): 
+        pass
 
     def processing_auto(self):
-    
-        if self.distance:
-
-            if self.distance >= self.locator.range()//2:
-                self.v = 2
-                self.move()
-            else:
-                self.v = 0
-                self.count += 1
-
-        if self.count:
-                if self.count < self.ROTATION:
-                    self.move(1) 
-                    self.count += 1
-
-                elif self.count < 3* self.ROTATION:
-                    self.move(-1) 
-                    self.count += 1
-
-                else:
-                    self.count = 0
-                    self.alpha += radians(150)
-                    self.v = 2
-                    self.move()
-
-        else: 
-                self.v = 2
-                self.move()
-        #elif self.count:
-
-        #    if self.count < self.ROTATION:
-        #        self.move(-1)
-        #        self.count += self.ROTATION
-        #    else:
-        #        self.count = 0
-                
-        #        self.move(-1)
-
+        
+        if self.border:
+            self.search_shapes()
+        else:
+            self.search_border()
+        
+ 
  

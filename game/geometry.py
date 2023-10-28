@@ -26,10 +26,10 @@ class Line():
         '''
         Рассчет коэффициентов прямой (k, b)
         '''
-        if -0.01 <= self.start_x - self.end_x <= 0.01:
+        if -0.9 <= self.start_x - self.end_x <= 0.9:
             self.x = self.start_x
             self.constant = self.start_x
-        elif -0.01 <= self.start_y - self.end_y <= 0.01:
+        elif -0.9 <= self.start_y - self.end_y <= 0.9:
             self.y = self.start_y
             self.constant = self.start_y
         elif (self.start_x - self.end_x) != 0:
@@ -75,9 +75,11 @@ class Line():
                 return True
         elif self.x:
             if self.x - eps <= new_x <= self.x + eps:
+                self.points.append(new_point)
                 return True
         else:
             if self.y - eps <= new_y <= self.y + eps:
+                self.points.append(new_point)
                 return True
         return False
 
@@ -260,6 +262,7 @@ def isAngle(points: list[tuple], current_point, MIN: float = 5, flag: bool = 0) 
 
     while it != len_points and line_1.isline(points[it]):
         it += 1
+        line_1.update()
     if it == len_points:
         return False, None
 
@@ -271,6 +274,8 @@ def isAngle(points: list[tuple], current_point, MIN: float = 5, flag: bool = 0) 
 
     while it != len_points and line_2.isline(points[it]):
         it += 1
+        line_2.update()
+
     if len(line_1.points) == 2 or len(line_2.points) == 2:
         return False, None
 
@@ -322,4 +327,5 @@ def what_is_it(points: list[tuple], current_point: tuple) -> str:
                     return 'Circle', output[1]
                 else:
                     return 'Unknow', None
+
 
