@@ -1,5 +1,5 @@
 # -*- coding: cp1251 -*-
-from math import cos, sin, radians
+from math import cos, sin, radians, atan
 class Line():
 
     def __init__(self, begin: tuple, end: tuple):
@@ -16,6 +16,7 @@ class Line():
         self.points = [begin, end]
         self.k = None
         self.b = None
+
 
         # для случая, когда уравнение имееет вид: x = const or y = const
         self.x = None
@@ -82,6 +83,16 @@ class Line():
                 self.points.append(new_point)
                 return True
         return False
+
+    def alpha(self):
+        if self.k:
+            x = self.end[0] - self.begin[0]
+            y = self.end[1] - self.begin[1]
+            return atan(y/x)
+        elif self.x:
+            return radians(90)
+        elif self.y:
+            return radians(0)
 
 
 
@@ -236,7 +247,7 @@ def isLine(points):
 
     it = len(points) - 2
 
-    while it != 0 and line.isline(points[it]):
+    while it > 0 and line.isline(points[it]):
         it -= 1
 
     line.update()
@@ -307,12 +318,14 @@ def isCircle(points: list[tuple], current_point):
 
 
 def what_is_it(points: list[tuple], current_point: tuple) -> str:
+    if not points:
+        return 'Unknow', None
     output = isLine(points)
     if output[0]:
         return 'Line', output[1]
     else:
         output = isAngle(points, current_point)
-        print(points)
+        #print(points)
         if output[0]:
             return 'Angle', output[1]
         else:
