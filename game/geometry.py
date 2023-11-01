@@ -319,7 +319,7 @@ def isCircle(points: list[tuple], current_point):
 
 def what_is_it(points: list[tuple], current_point: tuple) -> str:
     if not points:
-        return 'Unknow', None
+        return 'not points', None
     output = isLine(points)
     if output[0]:
         return 'Line', output[1]

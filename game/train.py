@@ -1,5 +1,7 @@
 from math import cos, sin, radians
+from pydoc import classname
 from random import uniform
+from tkinter import SEL
 from typing import Counter
 from game.locator import Locator
 from game.geometry import Line, Angle, Circle, what_is_it
@@ -56,6 +58,9 @@ class Train:
         self.box = []
         self.go = False
         self.up_pulse = False
+        self.down = True
+        self.last_class = None
+
 #----------------------------------------------------------
 
 
@@ -284,7 +289,7 @@ class Train:
 
 
     def snake(self):
-        if (self.distance and self.distance  <= self.locator.range()*0.3 and  self.points and self.new_point_is_border(self.points[-1])) or self.len_path > self.locator.range()*0.3:
+        if (self.distance and self.distance  <= self.locator.range()*0.1 and  self.points and self.new_point_is_border(self.points[-1])) or self.len_path > self.locator.range()*0.3:
             self.points = []
             if self.alpha < radians(270+self.delta):
                 self.delta = 0   
@@ -305,7 +310,7 @@ class Train:
         else:
             self.path = []
             self.len_path = 0
-        if self.distance and self.distance <= self.locator.range()*0.3:
+        if self.distance and self.distance <= self.locator.range()*0.1:
             self.v = 0
         else:
             self.v = 10
@@ -322,19 +327,33 @@ class Train:
         return max(self.line1_2.isline(new_point), self.line2_3.isline(new_point), self.line3_4.isline(new_point), self.line1_4.isline(new_point))
     
     def going(self):
-        if (not self.distance or self.distance and self.distance > self.locator.range()*0.1) and self.len_path < self.locator.range()*0.5:
+        if self.len_path < self.locator.range()*0.5:
             self.path.append((self.x, self.y))
             self.len_path = (((self.path[0][0] - self.path[-1][0]) ** 2 + (self.path[0][1] - self.path[-1][1]) ** 2) ** 0.5)
             self.move()
 
         else:
-            self.v = 0
-            self.go = False
-            self.up_pulse = True
-            self.path = []
-            self.len_path = 0
+      
             self.alpha += radians(90)
-            self.explore()
+
+            self.v = 0
+            self.len_path = 0
+            self.path = []
+
+            if self.distance and (self.points and not self.new_point_is_border(self.points[-1])):
+            
+                    self.alpha -= radians(90)
+              
+                    self.v = 5
+
+            else:
+                self.go = False
+                self.count = 1
+                #self.explore()
+             
+            self.move()
+
+  
             #self.alpha -= radians(90)
             #self.alpha += radians(90)
 
@@ -348,6 +367,10 @@ class Train:
 
         if self.count == 0 and (not self.points or (self.points and self.new_point_is_border(self.points[-1]))):
                 self.snake()
+                if self.distance:
+                    if   self.alpha > radians(180):
+                        self.down = True
+                    
 
         elif self.go:
 
@@ -357,27 +380,39 @@ class Train:
                 self.v = 0
                 class_name, out_class = self.explore()
 
-                if class_name == 'Line' and (self.box[-2].begin):
+                if class_name == 'Line':
+
+                    if self.last_class and (not out_class.isline(self.last_class.begin) or not out_class.isline(self.last_class.end)):
+                        self.up_pulse = not self.up_pulse
+                        if not self.up_pulse:
+                            self.down = not self.down
+                            
+
+
                    
                     self.count = 1
                     self.points = []
-                    if self.alpha < radians(180):
-                        self.alpha = out_class.alpha()
-                    else:
+ 
+                    if self.down:
                         self.alpha = out_class.alpha() + radians(180)
+                    else:
+                         self.alpha = out_class.alpha()
 
-                    self.box.append(out_class)
+
+
+                    
+                    self.last_class = out_class
+
+                
+
                     self.go = True
                     self.v = 5
-                elif class_name == 'Unknow':
-                    if self.up_pulse:
-                        self.go = True
-                        self.v = 5
-                        self.alpha += radians(90)
-                        self.up_pulse = False
+                elif class_name == 'not points':
+                 
 
-                else:
-                    self.v = 0
+                    self.go = True
+                    self.v = 5
+
 
 
 
