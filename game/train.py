@@ -108,10 +108,10 @@ class Train:
             "maps": figures
         }
     def make(self):
-        #-------???--------line_1, line_2, line_3, line_4 = self.box[-4:0]
+        
         line_1, line_2, line_3, line_4 = self.box
 
-        lines = [(line_1.begin, line_1.end, color3), (line_2.begin, line_2.end, color3), (line_3.begin, line_3.end, color3), (line_4.begin, line_4.end, color3),]
+        
 
 
         angle1_2 = Angle((self.x, self.y), line_1, line_2)
@@ -138,6 +138,7 @@ class Train:
 
         #-------???--------
         self.box = []
+        self.points = []
 
     def processing(self):
         if self.auto:
@@ -388,9 +389,9 @@ class Train:
             self.going()
                 
         else:
-                if len(self.box) == 8:
+                if len(self.box) == 4:
                     #------------------------------------------------------
-                    self.box = [self.box[0], self.box[2], self.box[4], self.box[7]]
+                    #self.box = [self.box[0], self.box[2], self.box[4], self.box[7]]
                     #------------------------------------------------------
                     self.make()
                     
@@ -406,7 +407,7 @@ class Train:
                         if not self.up_pulse:
                             self.down = not self.down
 
-                        self.box.append(self.last_class)
+                        #self.box.append(self.last_class)
                         self.box.append(out_class) 
                             
 
@@ -440,7 +441,7 @@ class Train:
                     line1 = out_class.line1
                     line2 = out_class.line2
                     self.box.append(line1)
-                    self.box.append(line2) 
+                    #self.box.append(line2) 
 
 
 
@@ -460,4 +461,5 @@ class Train:
         
  
  
+
 

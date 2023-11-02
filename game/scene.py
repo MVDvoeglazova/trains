@@ -65,8 +65,8 @@ class Scene:
         space.add(segment_shape_right)
 
         #circle_body_1 = pymunk.Body(body_type=pymunk.Body.STATIC)
-        #circle_body_1.position = 300, 300
-        #circle_shape_1 = pymunk.Circle(circle_body_1, 50)
+        #circle_body_1.position = 1000, 500
+        #circle_shape_1 = pymunk.Circle(circle_body_1, 100)
         #circle_shape_1.body = circle_body_1
         #space.add(circle_shape_1, circle_body_1)
 
