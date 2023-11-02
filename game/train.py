@@ -110,6 +110,10 @@ class Train:
     def make(self):
         #-------???--------line_1, line_2, line_3, line_4 = self.box[-4:0]
         line_1, line_2, line_3, line_4 = self.box
+
+        lines = [(line_1.begin, line_1.end, color3), (line_2.begin, line_2.end, color3), (line_3.begin, line_3.end, color3), (line_4.begin, line_4.end, color3),]
+
+
         angle1_2 = Angle((self.x, self.y), line_1, line_2)
         angle2_3 = Angle((self.x, self.y), line_2, line_3)
         angle3_4 = Angle((self.x, self.y), line_3, line_4)
@@ -119,10 +123,17 @@ class Train:
         angle3_4.intersection_point()
         angle1_4.intersection_point()
 
-        self.lines.append([(angle1_2.x_intersection, angle1_2.y_intersection)])
-        self.lines.append([(angle2_3.x_intersection, angle2_3.y_intersection)])
-        self.lines.append([(angle3_4.x_intersection, angle3_4.y_intersection)])
-        self.lines.append([(angle1_4.x_intersection, angle1_4.y_intersection)])
+
+
+        point_1 = (angle1_2.x_intersection, angle1_2.y_intersection)
+        point_2 = (angle2_3.x_intersection, angle2_3.y_intersection)
+        point_3 = (angle3_4.x_intersection, angle3_4.y_intersection)
+        point_4 = (angle1_4.x_intersection, angle1_4.y_intersection)
+
+
+
+        lines = [(point_1, point_2, color2), (point_2, point_3, color2), (point_3, point_4, color2), (point_4, point_1, color2)]
+        self.lines += lines
 
 
         #-------???--------
@@ -377,6 +388,14 @@ class Train:
             self.going()
                 
         else:
+                if len(self.box) == 8:
+                    #------------------------------------------------------
+                    self.box = [self.box[0], self.box[2], self.box[4], self.box[7]]
+                    #------------------------------------------------------
+                    self.make()
+                    
+                    self.v = 0
+                    
                 self.v = 0
                 class_name, out_class = self.explore()
 
@@ -386,6 +405,9 @@ class Train:
                         self.up_pulse = not self.up_pulse
                         if not self.up_pulse:
                             self.down = not self.down
+
+                        self.box.append(self.last_class)
+                        self.box.append(out_class) 
                             
 
 
@@ -412,6 +434,13 @@ class Train:
 
                     self.go = True
                     self.v = 5
+
+                elif class_name == 'Angle':
+
+                    line1 = out_class.line1
+                    line2 = out_class.line2
+                    self.box.append(line1)
+                    self.box.append(line2) 
 
 
 
