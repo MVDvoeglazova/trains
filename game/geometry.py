@@ -139,6 +139,9 @@ class Angle():
                 self.x_intersection = (self.line2.b - self.line1.b) / (self.line1.k - self.line2.k)
                 self.y_intersection = self.line1.k * self.x_intersection + self.line1.b
 
+
+
+
     def lenght(self, x, y):
         ''' Возвращает длину отрезка от поезда до заданной точки угла '''
         return (((self.x_train - x) ** 2 + (self.y_train - y) ** 2) ** 0.5)
@@ -237,7 +240,18 @@ class Circle():
                 return True
         return False
 
+def point_in_line(point, line, eps = 30):
+    begin = line.begin
+    end =  line.end
+    x_start, x_end = sorted((begin[0], end[0]))
+    y_start, y_end = sorted((begin[1], end[1]))
 
+
+
+    if x_start - eps  <= point[0] <= x_end + eps:
+            if  y_start - eps  <= point[1] <= y_end + eps:
+                return True
+    return False
 
 def isLine(points):
     start = points[0]
@@ -291,10 +305,16 @@ def isAngle(points: list[tuple], current_point, MIN: float = 5, flag: bool = 0) 
         return False, None
 
     if line_1.lenght() > MIN and line_2.lenght() > MIN:
+        l_1_points, l_2_points = line_1.points, line_2.points
         angle = Angle(current_point, line_1, line_2)
         angle.intersection_point()
+        x, y = angle.x_intersection, angle.y_intersection
+        #---------------------------------
+        if point_in_line((x,y), line_1) and point_in_line((x,y), line_2):
         
-        return True, angle
+            return True, angle
+        else:
+            return False, (line_1, line_2)
     else:
         return False, None
 
@@ -328,11 +348,15 @@ def what_is_it(points: list[tuple], current_point: tuple) -> str:
         #print(points)
         if output[0]:
             return 'Angle', output[1]
+        elif output[1]:
+            return 'two lines', output[1]
         else:
             output = isAngle(points, current_point, flag=1)
 
             if output[0]:
                 return 'Angle', output[1]
+            elif output[1]:
+                return 'two lines', output[1]
             else:
                 output = isCircle(points, current_point)
 

@@ -60,14 +60,15 @@ class Train:
         self.up_pulse = False
         self.down = True
         self.last_class = None
-
+        self.not_distance_points = []
+        self.distance_from_the_border = self.locator.range()*0.6
 #----------------------------------------------------------
 
 
 
     def update(self, x: float, y: float):
 
-        # TODO в будющих версиях боты сами будут счислять свое положение
+        # TODO в будующих версиях боты сами будут счислять свое положение
         if self.auto:
             self.x = x
             self.y = y
@@ -88,6 +89,12 @@ class Train:
                 if self.v == 0:
                     if new_point not in self.points:
                         self.points.append(new_point)
+            else:
+                new_point_not_distance = (
+                    x_q + self.locator.range() * cos(alpha_q),
+                    y_q + self.locator.range() * sin(alpha_q)
+                )
+                self.not_distance_points.append(new_point_not_distance)
  
         
         else:
@@ -205,6 +212,8 @@ class Train:
 
     def rotation(self):
 
+        
+
         if (0 < self.count <= self.ROTATION) or (3*self.ROTATION < self.count <= 4*self.ROTATION):
             self.v = 0
             self.move(-1)
@@ -225,6 +234,9 @@ class Train:
                
                 self.line = out_class
             elif class_name == 'Angle':
+
+                
+               
                 self.v = 0
             
 
@@ -248,28 +260,40 @@ class Train:
             point_2 = self.list_of_directions[-2]
             line = Line(point_1, point_2)
             line.update()
-            if line.lenght() < self.locator.range()*0.6:
+            if line.lenght() < self.distance_from_the_border:
                 self.alpha = radians(90+45+self.delta)
-
+                
                 self.count += 1
                 self.list_of_directions = []
             else:
                 self.list_of_directions = []
-
+                self.distance_from_the_border = self.locator.range() * 0.6
 
         elif self.count:
    
             class_name, out_class = self.rotation()
             
             if class_name == 'Angle':
-                  print(out_class.isborder())
-                  self.vertices_of_border.append((out_class.x_intersection, out_class.y_intersection))
-                  self.delta = 180
-                  self.alpha = radians(270)
-                  self.v = 10
-             
+                point = out_class.x_intersection, out_class.y_intersection
+
+
+
+               # self.distance_from_the_border = self.locator.range()*0.6
+                print(out_class.isborder())
+                self.vertices_of_border.append((point[0], point[1]))
+                self.distance_from_the_border = self.locator.range() * 0.6
+                self.delta = 180
+                self.alpha = radians(270)
+                self.v = 10
+            elif class_name == 'two lines':
+                self.count = 0 
+                self.distance_from_the_border = 40
+                self.move()
+
             
-        elif not self.distance or (self.distance and self.distance > self.locator.range()*0.6):
+               
+            
+        elif not self.distance or (self.distance and self.distance > self.distance_from_the_border):
             self.v = 10
             self.move()
         else:
