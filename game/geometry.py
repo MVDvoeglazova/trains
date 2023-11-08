@@ -235,7 +235,7 @@ class Circle():
         
         if self.xc and self.yc:
             new_r = ((new_point[0] - self.xc) ** 2 + (new_point[1] - self.yc) ** 2) ** 0.5 
-            if self.radius/4 <= new_r < self.radius * (5/4):
+            if -30 + self.radius <= new_r < 30 + self.radius:
                 self.points.append(new_point)
                 return True
         return False
@@ -254,6 +254,7 @@ def point_in_line(point, line, eps = 30):
     return False
 
 def isLine(points):
+    points = sorted(points)
     start = points[0]
     end = points[-1]
     line = Line(start, end)
@@ -264,7 +265,7 @@ def isLine(points):
     while it > 0 and line.isline(points[it]):
         it -= 1
 
-    line.update()
+        line.update()
     return line.isline(points[it]), line
 
 
@@ -320,6 +321,8 @@ def isAngle(points: list[tuple], current_point, MIN: float = 5, flag: bool = 0) 
 
 
 def isCircle(points: list[tuple], current_point):
+
+    points = sorted(points)
     start = points[0]
     mid = points[len(points) // 2]
     finish = points[-1]

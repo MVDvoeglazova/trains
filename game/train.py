@@ -273,6 +273,7 @@ class Train:
    
             class_name, out_class = self.rotation()
             
+            
             if class_name == 'Angle':
                 point = out_class.x_intersection, out_class.y_intersection
 
@@ -280,16 +281,20 @@ class Train:
 
                # self.distance_from_the_border = self.locator.range()*0.6
                 print(out_class.isborder())
-                self.vertices_of_border.append((point[0], point[1]))
-                self.distance_from_the_border = self.locator.range() * 0.6
-                self.delta = 180
-                self.alpha = radians(270)
-                self.v = 10
+                if out_class.isborder():
+                    self.vertices_of_border.append((point[0], point[1]))
+                    self.distance_from_the_border = self.locator.range() * 0.6
+                    self.delta = 180
+                    self.alpha = radians(270)
+                    self.v = 10
             elif class_name == 'two lines':
                 self.count = 0 
                 self.distance_from_the_border = 40
                 self.move()
 
+
+
+   
             
                
             
@@ -301,25 +306,29 @@ class Train:
             self.move()
 
         if len(self.vertices_of_border) == 2:
+            
             point_1 = self.vertices_of_border[0]
             point_3 = self.vertices_of_border[1] 
-            point_2 = point_1[0], point_3[1]
-            point_4 = point_3[0], point_1[1]
-            self.line1_2 = Line(point_1, point_2)
-            self.line2_3 = Line(point_2, point_3)
-            self.line3_4 = Line(point_3, point_4)
-            self.line1_4 = Line(point_1, point_4)
-            self.line1_2.update()
-            self.line2_3.update()
-            self.line3_4.update()
-            self.line1_4.update()
+            if point_1[0] - 10 < point_3[0] < point_1[0] + 10:
+                self.vertices_of_border.pop()
+            else:
+                point_2 = point_1[0], point_3[1]
+                point_4 = point_3[0], point_1[1]
+                self.line1_2 = Line(point_1, point_2)
+                self.line2_3 = Line(point_2, point_3)
+                self.line3_4 = Line(point_3, point_4)
+                self.line1_4 = Line(point_1, point_4)
+                self.line1_2.update()
+                self.line2_3.update()
+                self.line3_4.update()
+                self.line1_4.update()
 
-            lines = [(point_1, point_2, color1), (point_2, point_3, color1), (point_3, point_4, color1), (point_4, point_1, color1)]
-            self.lines += lines
-            self.border = True
-            self.delta = radians(0)
-            self.alpha = radians(90)
-            self.points = []
+                lines = [(point_1, point_2, color1), (point_2, point_3, color1), (point_3, point_4, color1), (point_4, point_1, color1)]
+                self.lines += lines
+                self.border = True
+                self.delta = radians(0)
+                self.alpha = radians(90)
+                self.points = []
             
 
 
